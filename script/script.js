@@ -1,25 +1,27 @@
-let qtdCartas = 4;
-
-// do{
-    //    qtdCartas = prompt('Com quantas cartas deseja jogar? (apenas números pares)');
-    //    Number(qtdCartas);
-    
-// } while(qtdCartas % 2 != 0 || qtdCartas == 0); 
-    
-let content = document.querySelector('.content');
-let cartas = []; 
+let qtdCartas;
 let imagens = [];
+let cartas = []; 
 let moves = 0;
+let content = document.querySelector(".content");
 
-preparaImagens();
+function startGame() {
+    do{
+        qtdCartas = Number(prompt('Com quantas cartas deseja jogar? (apenas números pares de 4 a 14)'));
+        
+    } while(qtdCartas % 2 != 0 || qtdCartas <= 0 || qtdCartas == 2 || qtdCartas > 14); 
+    
+    document.querySelector(".welcome").classList.add("hidden");
+    document.querySelector(".content").classList.remove("hidden");
 
-geraCartas();
-
-embaralhaCartas();
-
+    prepareImages();
+    
+    generateCards();
+    
+    shufleCards();
+}
 
 // Carrega as imagens
-function preparaImagens() {
+function prepareImages() {
     imagens.push("<img src='images/bobrossparrot.gif'>");  
     imagens.push("<img src='images/explodyparrot.gif'>");  
     imagens.push("<img src='images/fiestaparrot.gif'>");  
@@ -29,7 +31,7 @@ function preparaImagens() {
 }
 
 // Gera as cartas e as guarda em um array.
-function geraCartas() {
+function generateCards() {
     let carta;
     let contArray = 0;
 
@@ -60,7 +62,7 @@ function geraCartas() {
 }
 
 // Embaralha as cartas joga no HTML
-function embaralhaCartas() {
+function shufleCards() {
     let cartasEmbaralhadas = cartas.sort(comparador)
 
     for(let i = 0; i < qtdCartas; i++) {
@@ -69,45 +71,80 @@ function embaralhaCartas() {
 }
 
 function flipCard(card) {
-    let flipped = document.querySelectorAll(".flipped");
+    let selected = document.querySelectorAll(".selected");
     
     // Garante que apenas virará duas cartas por jogada
-    if(flipped.length < 2){
+    if(selected.length < 2){
+        if(!card.classList.contains("flipped")){
+            card.classList.add("selected")
+        }
+
         card.classList.add("flipped");
-        flipped = document.querySelectorAll(".flipped");
+        selected = document.querySelectorAll(".selected");
     }
 
-    if(flipped.length === 2){
-        if (flipped[0].id === flipped[1].id){
-            flipped[0].classList.remove("flipped")
-            flipped[0].classList.add("matched")
+    if(selected.length === 2){
+        // console.log(selected)
+        if (selected[0].id === selected[1].id){
+            selected[0].classList.add("flipped")
+            selected[1].classList.add("flipped")
 
-            flipped[1].classList.remove("flipped")
-            flipped[1].classList.add("matched")
+            selected[0].classList.remove("selected")
+            selected[1].classList.remove("selected")
+
         } else {
-            setTimeout(unflipCard, 1000, flipped);
+            setTimeout(unflipCard, 800, selected);
         }
         moves++;
     }
 
-    setTimeout(checkIfWon, 1000);
+    let flippedAmt = document.querySelectorAll(".flipped");
+    if(flippedAmt.length === qtdCartas){
+        setTimeout(showAlert, 500);
+    }
 }
 
-function unflipCard(flippedCards) {
-    // console.log(flippedCards)   
-    flippedCards[0].classList.remove("flipped");
-    flippedCards[1].classList.remove("flipped");
+function unflipCard(selectedCards) {
+    selectedCards[0].classList.remove("flipped");
+    selectedCards[0].classList.remove("selected");
+    selectedCards[1].classList.remove("flipped");
+    selectedCards[1].classList.remove("selected");
 }
 
 function comparador(){
     return Math.random() - 0.5;
 }
 
-function checkIfWon(){
-    matchedAmt = document.querySelectorAll(".matched");
-    if(matchedAmt.length === qtdCartas){
-        alert(`Ganhou em ${moves} movimentos.`)
+function showAlert(){
+    alert(`Você ganhou em ${moves} jogadas!`);
+    let resposta = prompt('Deseja jogar novamente? (Digite sim ou não)');
+    if(resposta === 'sim') {
+        resetaHtml();
+        startGame();
+    } else{
+        document.querySelector(".content").classList.add("hidden")
+        document.querySelector(".welcome").classList.remove("hidden")
+        resetaHtml();
     }
 }
 
-// setTimeout(function, 5000)
+function resetaHtml() {
+    let allSelected = document.querySelectorAll('.selected');
+    let allFlipped = document.querySelectorAll('.flipped');
+    for (let flipped of allFlipped) {
+        flipped.classList.remove("flipped")
+    }
+
+    for (let selected of allSelected) {
+        selected.classList.remove("selected")
+    }
+    
+    while (content.firstChild) {
+        content.removeChild(content.firstChild);
+    }
+
+    qtdCartas = 0;
+    imagens = [];
+    cartas = []; 
+    moves = 0;
+}
